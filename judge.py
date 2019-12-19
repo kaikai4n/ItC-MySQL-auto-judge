@@ -1,4 +1,6 @@
 import argparse
+import requests
+from urllib.parse import urlparse
 
 
 def get_args():
@@ -17,5 +19,17 @@ def get_args():
     return args
 
 
+class PaizaParser:
+    @staticmethod
+    def get_hash(url):
+        return urlparse(url).path
+        
+    @classmethod
+    def get_answer_url(cls, url):
+        answer_url = f'https://out.paiza.io{cls.get_hash(url)}/output.txt'
+        return answer_url
+
+
 if __name__ == '__main__':
     args = get_args()
+    answer_text = requests.get(PaizaParser.get_answer_url(args.answer_link)).text
