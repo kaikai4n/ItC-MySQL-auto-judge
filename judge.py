@@ -1,6 +1,9 @@
 import argparse
+import os
 import requests
+import zipfile
 from urllib.parse import urlparse
+from pathlib import Path
 
 
 def get_args():
@@ -14,6 +17,11 @@ def get_args():
         '--answer-link',
         required=True,
         help='TA reference answer link.'
+    )
+    parser.add_argument(
+        '--unzip-dir',
+        default='./files',
+        help='The unzip file save directory name'
     )
     args = parser.parse_args()
     return args
@@ -64,10 +72,27 @@ class AnswerParser:
         return answers
 
 
+class DataProcessor:
+    def __init__(self, path, save_path):
+        self.p = path
+        self.sp = save_path
+        sp_p = os.path.dirname(self.sp)
+        if not os.path.isdir(sp_p):
+            os.makedirs(sp_p)
+
+    def unzip_files(self):
+        p = Path(self.p)
+        for fn in p.glob('**/*.zip'):
+            with zipfile.ZipFile(str(fn), 'r') as zip_ref:
+                zip_ref.extractall(self.sp)
+
+
 if __name__ == '__main__':
     args = get_args()
     answer_text = requests.get(PaizaParser.get_answer_url(args.answer_link)).text
     answer = AnswerParser.parse_answer_text(answer_text)
+    dp = DataProcessor(args.data_dir, args.unzip_dir)
+    dp.unzip_files()
     import pdb
     pdb.set_trace()
     pass
